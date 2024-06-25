@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'add_expense.dart';
+import 'package:intl/intl.dart';
+
 import 'expense.dart';
 import 'expense_details.dart';
-import 'saving_tips_page.dart';
+import 'add_expense.dart';
+import 'database.dart';
+import 'custom_navigation_drawer.dart';
 
 class HomePage extends StatefulWidget {
   final List<Expense> expenses;
@@ -14,113 +17,73 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late DatabaseHelper _databaseHelper;
+
+  @override
+  void initState() {
+    super.initState();
+    _databaseHelper = DatabaseHelper();
+    _refreshExpenseList();
+  }
+
+  void _refreshExpenseList() async {
+    List<Expense> xList = await _databaseHelper.getExpenses();
+    setState(() {
+      widget.expenses.clear();
+      widget.expenses.addAll(xList);
+    });
+  }
+
+  void _addNewExpense() async {
+    final newExpense = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddExpensePage()),
+    );
+    if (newExpense != null) {
+      _refreshExpenseList();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
-      ),
-      drawer: CustomNavigationDrawer(),
-      body: ListView.builder(
-        itemCount: widget.expenses.length,
-        itemBuilder: (context, index) {
-          final expense = widget.expenses[index];
-          return ListTile(
-            title: Text(expense.title),
-            subtitle: Text('R\$ ${expense.amount.toStringAsFixed(2)}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${expense.date.day}/${expense.date.month}/${expense.date.year}'),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    setState(() {
-                      widget.expenses.removeAt(index);
-                    });
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_horiz), // Adiciona o ícone de "Mais Detalhes"
-                  onPressed: () {
-                    _showExpenseDetails(context, expense); // Mostra os detalhes quando o botão é pressionado
-                  },
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final newExpense = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddExpensePage()),
-          );
-          if (newExpense != null) {
-            setState(() {
-              widget.expenses.add(newExpense);
-            });
-          }
-        },
-        child: Icon(Icons.add),
-      ),
-    );
-  }
-
-  void _showExpenseDetails(BuildContext context, Expense expense) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ExpenseDetailsPage(expense: expense)),
-    );
-  }
-}
-
-class CustomNavigationDrawer extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-            ),
-            child: Text(
-              'Menu',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-              ),
-            ),
-          ),
-          ListTile(
-            title: Text('Home'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Adicionar Despesa'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddExpensePage()),
-              );
-            },
-          ),
-          ListTile(
-            title: Text('Dicas de Economia'),
-            leading: Icon(Icons.lightbulb_outline),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SavingTipsPage()),
-              );
-            },
+        title: Text('Lista de Despesas'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: _addNewExpense,
           ),
         ],
+      ),
+      drawer: CustomNavigationDrawer(expenses: widget.expenses),
+      body: widget.expenses.isEmpty
+          ? Center(
+        child: Text('Nenhuma despesa encontrada.'),
+      )
+          : ListView.builder(
+        itemCount: widget.expenses.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(widget.expenses[index].title),
+            subtitle: Text(
+                'R\$ ${widget.expenses[index].amount.toStringAsFixed(2)} - ${DateFormat('dd/MM/yyyy').format(widget.expenses[index].date)}'),
+            onTap: () async {
+              final editedExpense = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ExpenseDetailsPage(expense: widget.expenses[index]),
+                ),
+              );
+              if (editedExpense != null) {
+                setState(() {
+                  widget.expenses[index] = editedExpense;
+                });
+              }
+            },
+          );
+        },
       ),
     );
   }

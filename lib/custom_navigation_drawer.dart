@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+import 'home_page.dart';
+import 'add_expense.dart';
+import 'filter_expenses_page.dart';
 import 'saving_tips_page.dart';
-import 'package:untitled1/add_expense.dart';
+import 'expense.dart';
 
 class CustomNavigationDrawer extends StatelessWidget {
+  final List<Expense> expenses;
+
+  CustomNavigationDrawer({required this.expenses});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
-        children: <Widget>[
+        children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+              color: Colors.blue,
             ),
             child: Text(
               'Menu',
@@ -22,9 +29,12 @@ class CustomNavigationDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Text('Home'),
+            title: Text('Página Inicial'),
             onTap: () {
-              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage(expenses: expenses)),
+              );
             },
           ),
           ListTile(
@@ -37,12 +47,20 @@ class CustomNavigationDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            title: Text('Dicas de Economia'), // Novo item de menu
-            leading: Icon(Icons.lightbulb_outline),
+            title: Text('Filtrar Despesas'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SavingTipsPage()), // Navegação para a nova tela
+                MaterialPageRoute(builder: (context) => FilterExpensesPage(expenses: expenses)),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Dicas de Economia'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SavingTipsPage()),
               );
             },
           ),

@@ -12,11 +12,19 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   intl: ^0.17.0  # Adicionando a dependência para o pacote intl
+  geolocator: ^7.7.0
+  shared_preferences: ^2.2.2
+  sqflite: ^2.3.3
+  path: ^1.8.0
+  sqflite_common_ffi: ^2.1.0
+
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+
 
 flutter:
   uses-material-design: true
